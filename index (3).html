@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Temperature Converter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0d0d;
+      color: white;
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container { width: 100%; max-width: 400px; }
+
+    h1 {
+      text-align: center;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcbff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 11px;
+      color: #444;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 16px;
+    }
+
+    .unit-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      color: #666;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .tab.active {
+      background: #ff6b6b22;
+      border-color: #ff6b6b;
+      color: #ff6b6b;
+    }
+
+    .input-group {
+      margin-bottom: 24px;
+    }
+
+    .input-label {
+      font-size: 11px;
+      color: #555;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .input-wrap:focus-within { border-color: #ff6b6b; }
+
+    input[type="number"] {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 14px 16px;
+      color: white;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      outline: none;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button { display: none; }
+
+    .unit-badge {
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #ff6b6b;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .result-card {
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .result-card:hover { border-color: #ff6b6b; }
+    .result-card.highlight { border-color: #ffd93d; background: #ffd93d11; }
+
+    .result-unit {
+      font-size: 10px;
+      color: #555;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .result-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ff6b6b;
+    }
+
+    .result-card.highlight .result-value { color: #ffd93d; }
+
+    .result-emoji { font-size: 20px; margin-bottom: 4px; }
+
+    /* Reference */
+    .ref-title {
+      font-size: 10px;
+      color: #444;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .ref-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .ref-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: #0a0a0a;
+      border-radius: 10px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .ref-item:hover { background: #1a1a1a; }
+    .ref-name { color: #888; }
+    .ref-temps { display: flex; gap: 12px; }
+    .ref-temp { color: #666; font-size: 11px; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff6b6b;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>🌡️ Temp Converter</h1>
+  <div class="subtitle">Temperature Converter</div>
+
+  <div class="card">
+    <div class="unit-tabs">
+      <button class="tab active" onclick="setUnit('C')">°C</button>
+      <button class="tab" onclick="setUnit('F')">°F</button>
+      <button class="tab" onclick="setUnit('K')">K</button>
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">Enter Temperature</div>
+      <div class="input-wrap">
+        <input type="number" id="temp-input" placeholder="0" oninput="convert()"/>
+        <div class="unit-badge" id="unit-badge">°C</div>
+      </div>
+    </div>
+
+    <div class="results-grid" id="results-grid"></div>
+  </div>
+
+  <div class="card">
+    <div class="ref-title">// Common References</div>
+    <div class="ref-list" id="ref-list"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">COPIED!</div>
+
+<script>
+  let currentUnit = 'C';
+
+  const REFERENCES = [
+    { name: "Absolute Zero", C: -273.15, emoji: "🧊" },
+    { name: "Water Freezes", C: 0, emoji: "❄️" },
+    { name: "Room Temp", C: 22, emoji: "🏠" },
+    { name: "Body Temp", C: 37, emoji: "🩺" },
+    { name: "Water Boils", C: 100, emoji: "♨️" },
+  ];
+
+  function toC(val, unit) {
+    if (unit === 'C') return val;
+    if (unit === 'F') return (val - 32) * 5/9;
+    if (unit === 'K') return val - 273.15;
+  }
+
+  function fromC(celsius, unit) {
+    if (unit === 'C') return celsius;
+    if (unit === 'F') return celsius * 9/5 + 32;
+    if (unit === 'K') return celsius + 273.15;
+  }
+
+  function fmt(n) {
+    return isNaN(n) ? '—' : Number(n.toFixed(2)).toString();
+  }
+
+  function getEmoji(celsius) {
+    if (celsius <= -20) return '🥶';
+    if (celsius <= 0) return '❄️';
+    if (celsius <= 15) return '🧥';
+    if (celsius <= 25) return '😊';
+    if (celsius <= 35) return '☀️';
+    return '🔥';
+  }
+
+  function setUnit(unit) {
+    currentUnit = unit;
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', ['C','F','K'][i] === unit);
+    });
+    document.getElementById('unit-badge').textContent = unit === 'K' ? 'K' : `°${unit}`;
+    convert();
+  }
+
+  function convert() {
+    const input = parseFloat(document.getElementById('temp-input').value);
+    const grid = document.getElementById('results-grid');
+
+    if (isNaN(input)) {
+      grid.innerHTML = '<div style="color:#444;font-size:12px;grid-column:span 2;text-align:center;padding:16px">Enter a temperature above</div>';
+      return;
+    }
+
+    const celsius = toC(input, currentUnit);
+    const results = [
+      { unit: 'Celsius', symbol: '°C', value: fmt(celsius), key: 'C' },
+      { unit: 'Fahrenheit', symbol: '°F', value: fmt(fromC(celsius, 'F')), key: 'F' },
+      { unit: 'Kelvin', symbol: 'K', value: fmt(fromC(celsius, 'K')), key: 'K' },
+    ].filter(r => r.key !== currentUnit);
+
+    const emoji = getEmoji(celsius);
+
+    grid.innerHTML = results.map(r => `
+      <div class="result-card" onclick="copyVal('${r.value} ${r.symbol}')">
+        <div class="result-emoji">${emoji}</div>
+        <div class="result-unit">${r.unit}</div>
+        <div class="result-value">${r.value} ${r.symbol}</div>
+      </div>
+    `).join('');
+  }
+
+  function copyVal(val) {
+    navigator.clipboard.writeText(val);
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1500);
+  }
+
+  function buildRefs() {
+    const list = document.getElementById('ref-list');
+    list.innerHTML = REFERENCES.map(r => `
+      <div class="ref-item" onclick="useRef(${r.C})">
+        <span class="ref-name">${r.emoji} ${r.name}</span>
+        <div class="ref-temps">
+          <span class="ref-temp">${r.C}°C</span>
+          <span class="ref-temp">${fmt(fromC(r.C,'F'))}°F</span>
+          <span class="ref-temp">${fmt(fromC(r.C,'K'))}K</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function useRef(celsius) {
+    setUnit('C');
+    document.getElementById('temp-input').value = celsius;
+    convert();
+  }
+
+  buildRefs();
+  convert();
+</script>
+</body>
+</html>
